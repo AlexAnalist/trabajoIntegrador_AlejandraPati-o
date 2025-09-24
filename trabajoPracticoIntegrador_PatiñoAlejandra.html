@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Biblioteca</title>
+</head>
+<body>
+    <h1>Biblioteca de Alejandría</h1>
+    <script>
+
+//Decidí realizar mi trabajo practico integrador bajo el paradigma POO, ya que ha sido un paradigma con el que he trabajado con anterioridad y consideré que el Sistema a realizar se prestaba bastante para ellos, 
+//ya que pude trabajar de forma más organizada luego de darle a cada clase un objetivo: Libro y Usuario son los moldes para las dos entidades más importantes del programa. En biblioteca se maneja la lógica principal del negocio a través de los métodos.
+//y en la Clase Interfaz manejo la interacción de la información con el usuario y luego enviando a los metodos lo necesario para que ellos devuelvan lo pedido por el usuario.
+//Gracias a POO, se puede organizar y reutilizar codigo, es la mejor opción en caso de que el programa quiera escalar a nuevas funcionalidades, sin contar, los beneficiosn del encapsulamiento por métodos.  
+
+class Libro { //Declaramos la clase Libro
+    constructor(id, titulo, autor,año, genero, disponible = true){ //EL constructor con los atributos necesarios. 
+        this.id = id; 
+        this.titulo = titulo; 
+        this.autor = autor; 
+        this.año = año; 
+        this.genero = genero; 
+        this.disponible = disponible; //Por defecto se le asignara disponible a cada libro que se agregue 
+    }
+}
+
+class Usuario { //Declaramos la clase usuario 
+    constructor(id, nombre, email){ //El constructor con los atributos correspondientes especificados en el documento. 
+        this.id = id; 
+        this.nombre = nombre; 
+        this.email = email; 
+        this.librosPrestados = []; //A cada usuario va ligado su lista de LibrosPrestados, por lo que se declara en la clase. 
+    }
+}
+
+class Biblioteca { //Declaramos la clase Biblioteca que se encargara de todas las operaciones logicas del sistema. 
+    constructor(){
+        this.libros = this.primerosLibros(); //inicializamos el arreglo libros(el principal del sistema) con el resultado devuelto por el metodo primerosLibros() donde se declararon los primeros 10 libros. 
+        this.usuarios = this.primerosUsuarios(); //inicializamos el arreglo usuario de la misma forma que con libros. 
+        this.SigLibroId = 11; //guardamos estos indices para saber en que indice deben empezar a registrarse el resto de los libros.
+        this.SigUsaId = 6; //Lo mismo para los usuarios. 
+    }
+
+    primerosLibros(){ //arreglo con los primeros libros, covirtiendolos en objetos de la clase Libros. 
+        return [
+            new Libro(1, "Orgullo y Prejuicio", "Jane Austen", 1813, "Romance de Época", true),
+            new Libro(2,  "1984", "George Orwell", 1949, "Ciencia ficción", true),
+            new Libro(3, "Harry Potter", "J.K. Rowling", 1997, "Fantasía", true),
+            new Libro(4, "Rojo, Blanco y Sangre Azul", "Casey McQuiston", 2017, "Romance", true),
+            new Libro(5, "Mujercitas", "Louisa May Alcott", 1868, "Ficción Histórica", true),
+            new Libro(6, "Cumbres Borrascosas", "Emily Brontë", 1847, "Novela Gótica", true),
+            new Libro(7, "El arte de la guerra", "Sun Tzu", 1972, "Historia", true),
+            new Libro(8, "El retrato de Dorian Gray", "Oscar Wilde", 1890, "Novela Gótica", true), 
+            new Libro(9, "Historia de dos ciudades", "Charles Dickens", 1859, "Ficción Histórica", true),
+            new Libro(10, "Crepúsculo", "Stephenie Meyer", 2005, "Romantasy", true),
+        ]
+    }
+
+    
+    primerosUsuarios(){//arreglo con los primeros usuarios, covirtiendolos en objetos de la clase Usuarios. 
+        return [
+            new Usuario(1, "Ana Castañeda", "ana@email.com"),
+            new Usuario(2, "Carlos Hernandez", "carlos@email.com"),
+            new Usuario(3, "María Rodríguez", "maria@email.com"),
+            new Usuario(4, "Juan Pérez", "juan@email.com"),
+            new Usuario(5, "Carla Miranda", "carla@email.com") 
+        ]
+    }
+
+    //Se un nuevo libro con ID autoincremental y disponible por defecto
+    agregarLibro(titulo, autor, año, genero) {
+        const nuevoLibro = new Libro(this.SigLibroId++, titulo, autor, año, genero, true);
+        this.libros.push(nuevoLibro); //se agrega el nuevo libro al array libros
+        return nuevoLibro;
+    }
+
+
+    buscarLibro(criterio, valor) {//Busca libros según un criterio específico
+        return this.libros.filter(libro => {
+            // Convierte el criterio a minúsculas para la comparación 
+            switch(criterio.toLowerCase()) {
+                case 'titulo': return libro.titulo.toLowerCase().includes(valor.toLowerCase()); //se usa el metodo includes para verificar 
+                case 'autor': return libro.autor.toLowerCase().includes(valor.toLowerCase());
+                case 'genero': return libro.genero.toLowerCase().includes(valor.toLowerCase());
+                default: return false;
+            }
+        });
+    }
+
+    // Ordena los libros según el criterio (título o año) con burbuja
+    ordenarLibros(criterio){
+        const librosCopia = [...this.libros]; //se hace una copia para no alterar el array original 
+        // Bucle externo para recorrer el arreglo librosCopia
+        for(let i=0; i<librosCopia.length -1; i++){
+            // Bucle interno para comparar elementos adyacentes
+            for(let j=0; j<librosCopia.length -i -1; j++){
+                let cambio = false;// variable bandera para indicar si se debe hacer un intercambio
+                // Comparación según el criterio elegido
+                if(criterio === 'titulo'){
+                    // Compara los títulos por el alfabeto
+                    cambio = librosCopia[j].titulo > librosCopia[j+1].titulo;
+                } else if(criterio === 'año'){
+                    // Compara los años, para dejar los antiguos primero 
+                    cambio = librosCopia[j].año > librosCopia[j+1].año
+                }
+                // Si se cumple la condición, se intercambian los elementos
+
+                if (cambio) {
+                    [librosCopia[j], librosCopia[j+1]] = [librosCopia[j+1], librosCopia[j]];
+                }
+
+            }
+        }
+        return librosCopia;
+    }
+    
+    // Devuelve una copia del arreglo de libros actual
+    mostrarTodosLosLibros() {
+        return [...this.libros]; // Se usa spread(...) para evitar modificar el array original
+
+    }
+    
+    // Elimina un libro por su id
+    borrarLibro(id){
+        // Busca el índice del libro con el id especificado
+        const index = this.libros.findIndex(libro => libro.id === id); 
+        // Si se encuentra el libro se elimina del array y se decuelve. 
+        if(index !== -1){
+            return this.libros.splice(index, 1)[0]; 
+        }
+        return null;//devuelve null, en caos de que no 
+    }
+    // Registra un nuevo usuario con nombre y email
+    registrarUsuario(nombre, email){
+         // Crea un nuevo usuario con el siguiente id
+        const nuevoUser = new Usuario(this.SigUsaId++, nombre, email); 
+        //se agrega al array usuarios
+        this.usuarios.push(nuevoUser);
+        //devuelve el usuario nuevo 
+        return nuevoUser; 
+    }
+
+    // Devuelve una copia del arreglo de usuarios actual
+    mostrarTodosLosUsuarios() {
+        return [...this.usuarios];
+    }
+
+    // Busca un usuario por su email
+    buscarUsuario(email){
+        return this.usuarios.find(usuario => usuario.email === email); 
+    }
+
+    // Elimina un usuario por su id
+    borrarUsuario(id) {
+        // Busca el índice del usuario con el id especificado
+
+        const indice = this.usuarios.findIndex(usuario => usuario.id === id);
+        // Si no se encuentra, devuelve false
+        if (indice === -1) {
+            return false;
+        }
+        // Si lo encuentraelimina al usuario y devuelve true
+        this.usuarios.splice(indice, 1);
+        return true;
+    }
+
+    prestarLibro(idLibro, idUser){//recibe como parametro el id del libro y del usuario
+        //Busca el libro por su id
+        const libro = this.libros.find(l => l.id === idLibro); 
+        // Busca el usuario por su id
+        const usuario = this.usuarios.find(u => u.id === idUser); 
+        //Si no se encuentra el libro o el usuario, retorna false
+        if(!libro || !usuario) return false;
+        //Si el libro no está disponible, no se puede prestar
+        if(!libro.disponible) return false; 
+        
+        //Se marca el libro como no disponible
+        libro.disponible = false; 
+        // Agrega el id del libro a la lista de libros prestados del usuario
+        usuario.librosPrestados.push(idLibro); 
+        // Retorna true indicando que el préstamo fue exitoso
+        return true;
+    }
+
+    devolverLibro(idLibro, idUser){
+        // Busca el libro por su id
+        const libro = this.libros.find(l => l.id === idLibro); 
+        // Busca el usuario por su id
+        const usuario = this.usuarios.find(u => u.id === idUser);
+        
+        // Si no se encuentra el libro o el usuario, retorna false
+        if(!libro || !usuario) return false; 
+        // Busca el índice del libro en la lista de libros prestados del usuario
+        const libroIn = usuario.librosPrestados.indexOf(idLibro); 
+        // Si el libro no está en la lista, no se puede devolver
+        if (libroIn === -1) return false; 
+        // Marca el libro como disponible
+        libro.disponible = true; 
+        // Elimina el libro de la lista de libros prestados del usuario
+        usuario.librosPrestados.splice(libroIn, 1); 
+        // Retorna true indicando que la devolución fue exitosa
+        return true;
+    }
+
+    generarReporteLibros(){
+        // Total de libros en el sistema
+        const totalLibros = this.libros.length; 
+         // Cuenta cuántos libros están prestados (no disponibles)
+        const librosPrestados = this.libros.filter(libro => !libro.disponible).length;
+        // Inicializa un objeto para contar libros por género
+        const librosPorGenero = {};
+         // Recorre todos los libros para agrupar por género
+        for (let i=0; i<this.libros.length; i++){
+            const libro = this.libros[i]; 
+            const genero = libro.genero;
+            // Si el género no existe aún en el objeto, lo inicializa
+            if(librosPorGenero[genero] === undefined){//undefined verifica si ese genrro au no ha sido registrado en el objeto. 
+                //si es asi lo marca como el primero 
+                librosPorGenero[genero] = 1;
+            }else{
+                //si ya existe se incrementa el contador 
+                librosPorGenero[genero] = librosPorGenero[genero] + 1;
+            }
+        }    
+        //Encuentra el libro más antiguo usando reducee
+        const libroMasAntiguo = this.libros.reduce((min, libro) => libro.año < min.año ? libro:min, this.libros[0]);
+        //Encuentra el libro más nuevo usando reduce otra vez pero ahora con la lógica inversa 
+        const libroMasNuevo = this.libros.reduce((max, libro) => libro.año < max.año ? libro:max, this.libros[0]);
+        
+        // Devuelve un objeto con el resumen del estado de los libros
+        return {
+            totalLibros,
+            librosPrestados,
+            librosPorGenero,
+            libroMasAntiguo, 
+            libroMasNuevo,
+        };
+    }
+
+    librosConPalabrasEnTitulo(){
+        return this.libros.filter(libro => {
+            // Divide el título en palabras con .split, y eliminando espacios con .trim
+            const palabras = libro.titulo.trim().split(/\s+/);
+            // Verifica que haya más de una palabra
+            // Y que todas las palabras estén compuestas solo por letras (incluye acentos y ñ)
+            return palabras.length > 1 && 
+                   palabras.every(palabra => /^[a-zA-ZáéíóúñÁÉÍÓÚÑ]+$/.test(palabra));
+        //Devuelve el mapeo solo con los titulos que cumplen con la condicion
+        }).map(libro => libro.titulo);
+    }
+
+    calcularEstadistica() {
+        // Extrae todos los años de los libros
+        const años = this.libros.map(libro => libro.año);
+        // se calcula el promedio de los años
+        const promedio = años.reduce((sum, año) => sum + año, 0)/años.length;
+        // SE crea un objeto para contar cuántas veces aparece cada año
+        const frecuencia = años.reduce((acc, año) => {
+            acc[año] = (acc[año] || 0) + 1;
+            return acc;
+        }, {});
+        // Encuentra el año que aparece con mayor frecuencia
+        const añoMasFrecuente = Object.keys(frecuencia).reduce((a, b) => frecuencia[a] > frecuencia[b] ? a : b);
+        //Ordena los años de menor a mayor
+        const añosOrdenados = [...años].sort((a, b) => a - b);
+        // Calcula la diferencia entre el año más reciente y el más antiguo
+        const diferencia = añosOrdenados[añosOrdenados.length - 1] - añosOrdenados[0];
+        //Devuelve un resumen con todas estas metricas
+        return {
+            promedio: Math.round(promedio),
+            añoMasFrecuente: parseInt(añoMasFrecuente),
+            diferencia
+        };
+
+    }
+
+    normalizarDatos(){
+        // Recorre todos los libros y convierte sus títulos a mayúsculas
+        this.libros.forEach(libro => {
+            libro.titulo = libro.titulo.toUpperCase();
+        }); 
+        // Recorre nuevamente los libros y elimina espacios al inicio y al final del título
+        this.libros.forEach(libro => {
+            libro.titulo = libro.titulo.trim(); 
+        }); 
+        // Recorre todos los usuarios y convierte sus correos electrónicos a minúsculas
+        this.usuarios.forEach(usuario =>{
+            usuario.email = usuario.email.toLowerCase();
+        }); 
+        // Devuelve un mensaje indicando que la normalización fue exitosa
+        return { mensaje: "Datos normalizados correctamente"}; 
+    }
+}
+
+class Interfaz{
+    constructor(sistema) {
+        this.biblioteca = sistema;
+    }
+    //menu principal 
+    menuPrincipal(){
+        let opcion; 
+
+        do{
+            opcion = prompt(` 📜Biblioteca de Alejandría🪶   
+                1. Gestión de Libros
+                2. Gestión de Usuarios
+                3. Sistema de Préstamos
+                4. Reportes y Estadísticas
+                5. Normalizar Datos
+                6. Salir
+                Seleccionar una opción: `);
+
+            switch(opcion) {
+                case'1': this.menuLibros(); break;
+                case'2': this.menuUsers(); break; 
+                case'3': this.menuPrestamos(); break; 
+                case'4': this.menuReportes(); break; 
+                case'5': this.menuNormalizar(); break;
+                case'6': alert('¡Gracias por venir a la Biblioteca de Alejandría🪶!')
+                default: alert('Opción no válida'); 
+            }
+        }while(opcion !== '6')
+    }
+    //Casa submenu con sus opciones 
+    menuLibros(){
+        let opcion; 
+
+        do{
+          opcion = prompt(`
+            Gestión de Libros📚
+            
+            1. Agregar libro
+            2. Buscar libro
+            3. Mostrar todos los libros
+            4. Ordenar libros 
+            5. Eliminar libro 
+            6. Volver al menú principal
+            
+            Selecciona una opción: `); 
+
+            switch(opcion) {
+                case'1': this.agregarLibro(); break;
+                case'2': this.buscarLibro(); break; 
+                case'3': this.mostrarTodosLosLibros(); break; 
+                case'4': this.ordenarLibros(); break; 
+                case'5': this.borrarLibro(); break; 
+                case'6': return; 
+                default: alert('Opción Válida');
+            }
+        }while(opcion !== '6')
+    }
+
+    menuUsers(){
+        let opcion; 
+
+        do{
+            opcion= prompt(`
+                Gestion de Usuarios 👤
+
+                1. Registrar usuario
+                2. Buscar usuario por email 
+                3. Mostrar todos los usuarios
+                4. Eliminar usuario
+                5. Volver al menú principal
+                
+                Selecciona una opción: `); 
+
+                switch(opcion){
+                    case'1': this.registrarUsuario(); break; 
+                    case'2': this.buscarUsuario(); break; 
+                    case'3': this.mostrarTodosLosUsuarios(); break; 
+                    case'4': this.borrarUsuario(); break; 
+                    case'5': return; 
+                    default: alert('Opción no válida');
+                }
+        }while (opcion !== '5');
+    }
+
+    menuPrestamos(){
+        let opcion; 
+
+        do {
+            opcion = prompt(`
+                Préstamos 🔁
+
+                1. Registro de Préstamos
+                2. Registro de Devolución
+                3. Volver al menú principal
+                Selecciona una opción: `
+            ); 
+
+            switch(opcion){
+                case'1': this.prestarLibro(); break; 
+                case'2': this.devolverLibro(); break; 
+                case'3': return; 
+                default: alert('Opción no válida'); 
+
+            }
+
+        }while (opcion !== '3');
+    }
+
+    menuReportes(){
+        let opcion; 
+        
+        do{
+            opcion = prompt(`
+                Reportes y Estádisticas📈
+                
+                1. Generar reporte de libros
+                2. Calcular estadístcas 
+                3. Libros con títulos de varias palabras.
+                4. Volver al menú principal
+                Selecciona una opción: `); 
+
+            switch(opcion){
+                case'1': this.generarReporteLibros(); break; 
+                case'2': this.calcularEstadistica(); break; 
+                case'3': this.librosConPalabrasEnTitulo(); break; 
+                case'4': return; 
+                default: alert('Opcion no válida');  
+            }
+        }while (opcion !== '4'); 
+    }
+
+    menuNormalizar(){
+        let opcion; 
+
+        do{
+            opcion = prompt(`
+                Normalización 📋
+                1. Normalizar datos
+                2. Volver al menú principal
+                Selecciona una opción: `); 
+
+            switch(opcion) {
+                case'1': this.normalizarDatos(); break; 
+                case'2': return; 
+                default: alert('Opción no válida'); 
+            }
+        } while (opcion !== '2');
+    }
+
+    //Implementación de los métodos para cada menú 
+
+   //Métodos para Gestión de Libros 
+   agregarLibro(){
+       const titulo = prompt("Ingrese el título del libro: "); 
+       const autor = prompt("Ingrese el autor del libro: "); 
+       const año = parseInt(prompt("Ingresa el año de publicación: ")); 
+       const genero = prompt("Ingresa el género del libro: "); 
+
+       if (titulo && autor && año && genero){ //si están todos los datos, se registra
+          this.biblioteca.agregarLibro(titulo, autor, año, genero); 
+          alert("Libro agregado correctamente")
+       }else {
+        alert("Error: Todos los campos son obligatorios"); 
+       }
+    } 
+   //se pide ingresar el cirterio, se verifica y luego se pide el valor de dicho criterio 
+   buscarLibro(){
+       const criterio = prompt("Buscar por: \n1. Título\n2. Autor\n3. Género\nSeleccione una opción:"); 
+       let tipoB; 
+
+       switch (criterio) {
+           case'1': tipoB = 'titulo'; break;
+           case'2': tipoB = 'autor'; break; 
+           case'3': tipoB = 'genero'; break;
+            default: alert("Opción no válida"); break;
+        }
+
+        const valor = prompt(`Ingrese el ${tipoB} a buscar:`);
+        const resultados = this.biblioteca.buscarLibro(tipoB, valor);
+
+       if (resultados.length > 0) {
+            let mensaje = `🔍 Resultados de búsqueda (${resultados.length} encontrados):\n\n`;
+            resultados.forEach(libro => {
+                mensaje += `📖 ${libro.titulo} - ${libro.autor} (${libro.año})\n`;
+                mensaje += `   Género: ${libro.genero} | Estado: ${libro.disponible ? '✅ Disponible' : '❌ Prestado'}\n\n`;
+            });
+            alert(mensaje);
+        } else {
+            alert("❌ No se encontraron libros con ese criterio");
+        }
+    }
+
+    //Muestra todos los libros registrados 
+    mostrarTodosLosLibros() {
+        if (this.biblioteca.libros.length === 0) {
+            alert("📚 No hay libros en la biblioteca");
+            return;
+        }
+        
+        let mensaje = "📚 LISTA COMPLETA DE LIBROS:\n\n";
+        this.biblioteca.libros.forEach(libro => {
+            mensaje += `ID: ${libro.id} | 📖 ${libro.titulo}\n`;
+            mensaje += `   👤 Autor: ${libro.autor} | 📅 Año: ${libro.año}\n`;
+            mensaje += `   🏷️ Género: ${libro.genero} | Estado: ${libro.disponible ? '✅ Disponible' : '❌ Prestado'}\n\n`;
+        });
+        
+        alert(mensaje);
+    }
+    
+
+    borrarLibro() {
+        const id = parseInt(prompt("Ingrese el ID del libro a eliminar:"));
+        const libroEliminado = this.biblioteca.borrarLibro(id);
+        
+        if (libroEliminado) {
+            alert(`✅ Libro "${libroEliminado.titulo}" eliminado correctamente`);
+        } else {
+            alert("❌ No se encontró un libro con ese ID");
+        }
+    }
+
+    ordenarLibros() {
+        const criterio = prompt("Ordenar por:\n1. Título\n2. Año\nSeleccione una opción:");
+        let tipoOrdenamiento;
+        
+        switch(criterio) {
+            case '1': tipoOrdenamiento = 'titulo'; break;
+            case '2': tipoOrdenamiento = 'año'; break;
+            default: 
+                alert("❌ Opción no válida");
+                return;
+        }
+        
+        const librosOrdenados = this.biblioteca.ordenarLibros(tipoOrdenamiento);
+        let mensaje = `📚 LIBROS ORDENADOS POR ${tipoOrdenamiento.toUpperCase()}:\n\n`;
+        librosOrdenados.forEach(libro => {
+            mensaje += `📖 ${libro.titulo} - ${libro.autor} (${libro.año})\n`;
+            });
+        
+        alert(mensaje);
+    }
+    
+    
+
+    //Metodos para el Menú de Gestión de Usuarios
+
+    registrarUsuario() {
+        const nombre = prompt("Ingrese el nombre del usuario:");
+        const email = prompt("Ingrese el email del usuario:");
+        
+        if (nombre && email) {
+            this.biblioteca.registrarUsuario(nombre, email);
+            alert("✅ Usuario registrado correctamente!");
+        } else {
+            alert("❌ Error: Todos los campos son obligatorios");
+        }
+    }
+
+    buscarUsuario() {
+        const email = prompt("Ingrese el email del usuario a buscar:");
+        const usuario = this.biblioteca.buscarUsuario(email);
+        
+        if (usuario) {
+            let mensaje = `👤 INFORMACIÓN DEL USUARIO:\n\n`;
+            mensaje += `Nombre: ${usuario.nombre}\n`;
+            mensaje += `Email: ${usuario.email}\n`;
+            mensaje += `ID: ${usuario.id}\n`;
+            mensaje += `Libros prestados: ${usuario.librosPrestados.length}\n`;
+            
+            if (usuario.librosPrestados.length > 0) {
+                mensaje += `\n📚 Libros prestados:\n`;
+                usuario.librosPrestados.forEach(idLibro => {
+                    const libro = this.biblioteca.libros.find(l => l.id === idLibro);
+                    if (libro) {
+                        mensaje += `   - ${libro.titulo}\n`;
+                    }
+                });
+            }
+            
+            alert(mensaje);
+        } else {
+            alert("❌ No se encontró un usuario con ese email");
+        }
+    }
+
+    mostrarTodosLosUsuarios() {
+        if (this.biblioteca.usuarios.length === 0) {
+            alert("👥 No hay usuarios registrados");
+            return;
+        }
+        
+        let mensaje = "👥 LISTA COMPLETA DE USUARIOS:\n\n";
+        this.biblioteca.usuarios.forEach(usuario => {
+            mensaje += `ID: ${usuario.id} | 👤 ${usuario.nombre}\n`;
+            mensaje += `   📧 Email: ${usuario.email}\n`;
+            mensaje += `   📚 Libros prestados: ${usuario.librosPrestados.length}\n\n`;
+        });
+        
+        alert(mensaje);
+    }
+
+    borrarLibro() {
+    // Mostrar todos los libros para que asi pueda indicar su id 
+    if (this.biblioteca.libros.length === 0) {
+        alert("❌ No hay libros para eliminar");
+        return;
+    }
+    
+    let listaLibros = "Seleccione el ID del libro a eliminar:\n\n";
+    this.biblioteca.libros.forEach(libro => {
+        const estado = libro.disponible ? "Disponible" : "Prestado";
+        listaLibros += `ID: ${libro.id} - "${libro.titulo}" por ${libro.autor} (${estado})\n`;
+    });
+    
+    const id = parseInt(prompt(listaLibros + "\nIngrese el ID:"));
+    const libroEliminado = this.biblioteca.borrarLibro(id);
+    
+    if (libroEliminado) {
+        alert(`✅ Libro "${libroEliminado.titulo}" eliminado correctamente`);
+    } else {
+        alert("❌ No se encontró un libro con ese ID");
+    }
+}
+
+    //Métodos para Sistema de Préstamos 
+
+    prestarLibro() {
+        //Verifica que si haya usuarios, o si no dar una alerta al respeto 
+        if (this.biblioteca.usuarios.length === 0) {
+            alert("❌ No hay usuarios registrados");
+            return;
+        }
+        //Verifica que si haya libros
+        if (this.biblioteca.libros.filter(l => l.disponible).length === 0) {
+            alert("❌ No hay libros disponibles para prestar");
+            return;
+        }
+        
+        //Muestra todos los usuarios para que se seleccione quien va a hacer el prestamos
+        let listaUsuarios = "Seleccione el ID del usuario:\n\n";
+        this.biblioteca.usuarios.forEach(usuario => {
+            listaUsuarios += `ID: ${usuario.id} - ${usuario.nombre}\n`;
+        });
+        
+        const idUsuario = parseInt(prompt(listaUsuarios + "\nIngrese el ID del usuario:"));
+        // Mostrar todos los libros disponibles
+        const librosDisponibles = this.biblioteca.libros.filter(l => l.disponible);
+        let listaLibros = "Seleccione el ID del libro a prestar:\n\n";
+        librosDisponibles.forEach(libro => {
+            listaLibros += `ID: ${libro.id} - ${libro.titulo} (${libro.autor})\n`;
+        });
+        
+        const idLibro = parseInt(prompt(listaLibros + "\nIngrese el ID del libro:"));
+        //Si el metodo es exitoso devolvera un true 
+        const exito = this.biblioteca.prestarLibro(idLibro, idUsuario);
+        
+        if (exito) {
+            alert("✅ Libro prestado correctamente!");
+        } else {
+            alert("❌ Error: No se pudo realizar el préstamo");
+        }
+      
+    }
+
+    devolverLibro() {
+        //COn filter arroja solo los usuarios que tienen al menos un libro prestado
+        const usuariosConPrestamos = this.biblioteca.usuarios.filter(u => u.librosPrestados.length > 0);
+        //Si no hay prestamos entonces da la alerta y regresa
+        if (usuariosConPrestamos.length === 0) {
+            alert("❌ No hay préstamos activos");
+            return;
+        }
+        //Lista de usuarios que si tienen prestamo para que seleccione quien va a devolver un libro
+        let listaUsuarios = "Seleccione el ID del usuario:\n\n";
+        usuariosConPrestamos.forEach(usuario => {
+            listaUsuarios += `ID: ${usuario.id} - ${usuario.nombre} (${usuario.librosPrestados.length} libros)\n`;
+        });
+        
+        const idUsuario = parseInt(prompt(listaUsuarios + "\nIngrese el ID del usuario:"));
+        const usuario = this.biblioteca.usuarios.find(u => u.id === idUsuario);
+        
+        if (!usuario || usuario.librosPrestados.length === 0) {
+            alert("❌ Usuario no válido o sin préstamos");
+            return;
+        }
+        
+        // Mostrar libros prestados del usuario
+        let listaLibros = "Seleccione el ID del libro a devolver:\n\n";
+        usuario.librosPrestados.forEach(idLibro => {
+            const libro = this.biblioteca.libros.find(l => l.id === idLibro);
+            if (libro) {
+                listaLibros += `ID: ${libro.id} - ${libro.titulo}\n`;
+            }
+        });
+        //Pedirle que ingrese el id del que desea devolver 
+        const idLibro = parseInt(prompt(listaLibros + "\nIngrese el ID del libro:"));
+        //Devuelve un true si el metodo funciono bien 
+        const exito = this.biblioteca.devolverLibro(idLibro, idUsuario);
+        
+        if (exito) {
+            alert("✅ Libro devuelto correctamente!");
+        } else {
+            alert("❌ Error: No se pudo realizar la devolución");
+        }
+    }
+
+    generarReporteLibros() {
+        //Obtenemos el reporte general generado por el metodo que se encuentra en la clase biblioteca 
+        const reporte = this.biblioteca.generarReporteLibros();
+        //con esos datos mostramos un mensaje al usuario: 
+        let mensaje = "📊 REPORTE DE BIBLIOTECA\n\n";
+        mensaje += `📚 Total de libros: ${reporte.totalLibros}\n`;
+        mensaje += `📖 Libros prestados: ${reporte.librosPrestados}\n`;
+        mensaje += `✅ Libros disponibles: ${reporte.totalLibros - reporte.librosPrestados}\n\n`;
+        //cantidad de libros por género 
+        mensaje += "🏷️ Libros por género:\n";
+        for (const [genero, cantidad] of Object.entries(reporte.librosPorGenero)) {
+            mensaje += `   ${genero}: ${cantidad} libros\n`;
+        }
+        //el libro mas antiguo y el más nuevo. 
+        mensaje += `\n📅 Libro más antiguo: ${reporte.libroMasAntiguo.titulo} (${reporte.libroMasAntiguo.año})\n`;
+        mensaje += `📅 Libro más nuevo: ${reporte.libroMasNuevo.titulo} (${reporte.libroMasNuevo.año})`;
+        
+        alert(mensaje);
+    }
+
+    calcularEstadisticas() {
+        //las estadisticas calculadas en biblioteca, las traemos 
+        const estadisticas = this.biblioteca.calcularEstadisticas();
+        //y se construye un mensaje mostrando los datos
+        let mensaje = "📈 ESTADÍSTICAS DE LA BIBLIOTECA\n\n";
+        mensaje += `📊 Promedio de años de publicación: ${estadisticas.promedio}\n`;
+        mensaje += `📅 Año de publicación más frecuente: ${estadisticas.añoMasFrecuente}\n`;
+        mensaje += `⏳ Diferencia entre libro más nuevo y más antiguo: ${estadisticas.diferencia} años`;
+        
+        alert(mensaje);
+    }
+
+    librosConPalabrasEnTitulo() {
+        //Los titulos con multiples palabra sse obtienen 
+        const libros = this.biblioteca.librosConPalabrasEnTitulo();
+        //Si el metodo no devulve nada, muestra una alerta 
+        if (libros.length === 0) {
+            alert("❌ No se encontraron libros con títulos de múltiples palabras");
+            return;
+        }
+        // se construye el mensaje con los titulos encontrados. 
+        let mensaje = "🔤 LIBROS CON TÍTULOS DE MÚLTIPLES PALABRAS:\n\n";
+        libros.forEach(titulo => {
+            mensaje += `📖 ${titulo}\n`;
+        });
+        
+        alert(mensaje);
+    }
+    
+
+    
+}
+//se crea una nueva instancoa de la clase Biblioteca(la principal)
+const biblioteca = new Biblioteca();
+//se crea una nueva instancia de la clase Interfaz, recibiendo como argumento, la instancia biblioteca, lo que permite que la interfaz acceda a los metodos y datos de la biblioteca. 
+const interfaz = new Interfaz(biblioteca);
+//se llama al metodo del menú principal para correr el programa
+interfaz.menuPrincipal();
+
+ </script>
+</body>
+</html>
